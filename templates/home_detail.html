@@ -1,0 +1,167 @@
+{% extends 'home_layout.html' %}
+
+{% block css %}
+    <link rel="stylesheet" href="/static/plugins/kindeditor/themes/default/default.css"
+          xmlns="http://www.w3.org/1999/html"/>
+{% endblock %}
+
+{% block content %}
+    <div class="art-title">
+        <a>{{ article.title }}</a>
+    </div>
+    <div class="art-content">
+        {{ article.articledetail.content|safe }}
+    </div>
+    <div class="art-recommend clearfix">
+        <div class="recommend">
+            <a href="#" class="up"
+               style="margin: 5px 10px;display: inline-block;padding: 5px 15px;border: 1px solid #dddddd;text-align: center;">
+                <i class="fa fa-thumbs-o-up fa-3" aria-hidden="true" style="font-size: 25px"></i>
+
+                <div>{{ article.up_count }}</div>
+            </a>
+            <a href="#" class="down"
+               style="margin: 5px 30px 5px 10px;display: inline-block;padding: 5px 15px;border: 1px solid #dddddd;text-align: center;">
+                <i class="fa fa-thumbs-o-down fa-3" aria-hidden="true" style="font-size: 25px"></i>
+
+                <div>{{ article.down_count }}</div>
+            </a>
+        </div>
+    </div>
+    <div class="art-tips clearfix">
+        <div class="tips">
+            <span class="ctime">{{ article.create_time|date:"Y-m-d H:i:s" }}</span>
+            <a href="/{{ blog.site }}.html" class="author">{{ blog.user.nickname }}</a>
+            <span class="comment-count">评论({{ article.comment_count }})</span>
+            <span class="read-count">阅读({{ article.read_count }})</span>
+        </div>
+    </div>
+    <div id="AllanboltSignature">
+        <div style="border-bottom: #e0e0e0 1px dashed; border-left: #e0e0e0 1px dashed; padding: 10px; font-family: 微软雅黑; font-size: 11px; border-top: #e0e0e0 1px dashed; border-right: #e0e0e0 1px dashed; "
+             id="PSignature">
+            <div style="float:left;width:70px;">
+                <img src="/static/imgs/o_Warning.png" style="width:65px;height:65px">
+            </div>
+            <div style="float:left;padding-top:10px;">
+
+                <div style="padding: 1px">作者：<a href="http://www.cnblogs.com/{{ blog.user.nickname }}/"
+                                                target="_blank">{{ blog.user.nickname }}</a></div>
+                <div style="padding: 1px">出处：<a href="http://www.cnblogs.com/{{ blog.user.nickname }}/" target="_blank">http://www.cnblogs.com/{{ blog.user.nickname }}/</a>
+                </div>
+                <div style="padding: 1px">本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接</div>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+    <div class="art-comment">
+        <div class="comment-title">
+            评论列表
+        </div>
+        <div class="comment-list">
+            {% for comment in comment_list %}
+                <div class="comment-item">
+                    <div class="reply-title clearfix">
+                        <div class="user-info">
+                            <span>{{ comment.user.nickname }}于{{ comment.create_time|date:"Y-m-d H:i:s" }}评论</span>
+                        </div>
+                        <div class="reply">
+                            <a href="#"
+                               onclick="comment_to_user(this,'{{ comment.user.nid }}','{{ comment.user.nickname }}')">回复</a>
+                        </div>
+                    </div>
+                    <div class="reply-body">
+                        {% if comment.reply %}
+                            <div class="reply-user">@{{ comment.reply.user.nickname }}</div>
+                        {% endif %}
+                        <div class="content">
+                            {{ comment.content }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="comment-list-pager">
+            <ul class="pagination">
+                {{ page_str }}
+            </ul>
+        </div>
+        <div class="comment-area">
+            <div class="replay-comment-user"></div>
+            <div class="reply-area" style="position: relative;">
+                {% if not request.session.user_info %}
+                    <div style="text-align:center;line-height:200px;position: absolute;top:0;left:0;right:0;bottom: 0;background-color: rgba(255,255,255,.6)">
+                        您需要登录后才可以回帖 <a href="/login.html">登录</a> | <a href="/register.html">立即注册</a>
+                    </div>
+                    <textarea name="content" style="width: 100%;height:200px;visibility:hidden;"></textarea>
+                {% else %}
+                    <span style="color: #269abc" id="to_user"></span>
+                    <span style="display: none;color: #269abc" id="to_user_id"></span>
+                    <textarea id="submitcomment" name="content"
+                              style="width: 100%;height:200px;visibility:hidden;"></textarea>
+                {% endif %}
+            </div>
+            <div class="reply-btn">
+                <span><span style="color: darkred" class="word_count1"></span>最大字数：255字</span>
+                <a href="#" onclick="comment_commit('{{ article.nid }}')">发表回复</a>
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script charset="utf-8" src="/static/plugins/kindeditor/kindeditor-min.js"></script>
+    <script charset="utf-8" src="/static/plugins/kindeditor/lang/zh_CN.js"></script>
+    <script>
+        var editor;
+        KindEditor.ready(function (K) {
+            editor = K.create('textarea[name="content"]', {
+                resizeType: 1,
+                allowPreviewEmoticons: false,
+                allowImageUpload: false,
+                items: [
+                    'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+                    'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+                    'insertunorderedlist', '|', 'emoticons', 'image', 'link'],
+                //关键所在，当失去焦点时执行this.sync()，同步输入的值到textarea中;
+                afterBlur: function () {
+                    this.sync();
+                }
+            });
+        });
+        function comment_to_user(the, replayid, replayname) {
+            word = '回复给：' + replayname
+            $('#to_user').html(word)
+            $('#to_user_id').html(replayid)
+        }
+        function comment_commit(article_id) {
+            var to_user_id = $('#to_user_id').text()
+            var content = $('#submitcomment').val()
+            var article_id = article_id
+            console.log(content)
+            if (window.confirm('你确定要评论吗？')) {
+                $.ajax({
+                    url: '/backend/comment.html',
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        "to_user_id": to_user_id,
+                        "content": content,
+                        "article_id": article_id
+                    },
+                    success: function (data) {
+                        location.reload()
+                    }
+                })
+            }
+            else {
+                //alert("取消");
+                return false;
+            }
+        }
+
+
+    </script>
+{% endblock %}

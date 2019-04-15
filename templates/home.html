@@ -1,0 +1,23 @@
+{% extends 'home_layout.html' %}
+
+{% block content %}
+
+    <div class="summary-list">
+        {% for row in article_list %}
+        <div class="summary-item">
+            <div class="summary-title">
+                <a href="/{{ blog.site }}/{{ row.nid }}.html">{{ row.title }}</a>
+            </div>
+            <div class="summary-content">
+                {{ row.summary }}
+            </div>
+            <div class="summary-footer">
+                <span>{{ row.create_time|date:"Y-m-d H:i:s"}} </span>
+                <span>阅读({{ row.up_count }})</span>
+                <span>评论({{ row.down_count }})</span>
+                <a href="/backend/edit-article-{{ row.nid }}.html">编辑</a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}

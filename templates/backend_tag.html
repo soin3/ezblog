@@ -1,0 +1,156 @@
+{% extends 'backend_layout.html' %}
+{% block css %}
+
+{% endblock %}
+{% block conent %}
+    <ol class="breadcrumb">
+        <li><a href="#">标签管理</a></li>
+        <li class="active">标签列表</li>
+    </ol>
+    <div>
+
+        <div class="row" style="padding: 20px 5px;">
+            <form id="add_tag_form" class="form-horizontal">
+                <div class="col-xs-12">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="col-xs-1 control-label">标签名</label>
+
+                        <div class="col-xs-3">
+                            <input type="text" name="tag_name" class="form-control" id="tag_name" placeholder="请输入标签名">
+                        </div>
+                        <div class="col-xs-3">
+                            <i onclick="add_tag()" id="add_tag" class="btn btn-primary">
+                                添加
+                            </i>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div style="height: 35px;background-color: #f5f5f5;line-height: 35px;padding: 0 15px;">
+            <i class="fa fa-table" aria-hidden="true"></i>
+            标签列表
+        </div>
+
+
+        <table id="tab" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>标签</th>
+                <th>文章个数</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in tag_list %}
+                <tr id= {{ row.nid }}>
+                    <td>{{ forloop.counter }}</td>
+                    <td><input name="edit_title" id="edit_title" disabled="true" value="{{ row.title }}"></td>
+                    <td>{{ row.article_set.count }}</td>
+                    <td>
+                        <a class="btn btn-danger btn-xs">
+                            <i onclick="del_tag(this,{{ row.nid }})" id="delete" class="fa fa-times" aria-hidden="true">
+                                删除
+                            </i></a>
+                        |
+                        <a class="btn btn-primary btn-xs">
+                            <i onclick="edit_tag(this,{{ row.nid }})" id="edit" class="fa fa-times" aria-hidden="true">
+                                编辑
+                            </i></a>
+                        |
+                        <a class="btn btn-success btn-xs">
+                            <i onclick="save_tag(this,{{ row.nid }})" id="save" class="fa fa-pencil-square-o"
+                               aria-hidden="true">保存</i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+        <div class="clearfix">
+            <ul class="pagination">
+                    {{ page_str }}
+            </ul>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        function del_tag(the, tag_id) {
+            if (window.confirm('你确定要删除吗？')) {
+                $.ajax({
+                            url: '/backend/tag.html',
+                            type: "POST",
+                            data: {csrfmiddlewaretoken: '{{ csrf_token }}', "tag_id": tag_id, "tag_type": 'delete'},
+                            success: function (data) {
+                                location.href = '/backend/tag.html'
+                            }
+                        }
+                )
+            }
+            else {
+                //alert("取消");
+                return false;
+            }
+        }
+        function edit_tag(the, tag_id) {
+            {#            使用tag_id来获取input标签，然后修改为可编辑#}
+            var id = "#" + tag_id;
+            $(id).find('input[name="edit_title"]').attr("disabled", false);
+        }
+        function save_tag(the, tag_id) {
+            {#            通过tag_id来获取input标签输入完以后的值，然后提交#}
+            var id = "#" + tag_id;
+            var tag_name = $(id).find('input[name="edit_title"]').val()
+            if (window.confirm('你确定要保存吗？')) {
+                $.ajax({
+                            url: '/backend/tag.html',
+                            type: "POST",
+                            data: {
+                                csrfmiddlewaretoken: '{{ csrf_token }}',
+                                "tag_id": tag_id,
+                                "tag_type": 'save',
+                                "tag_name": tag_name
+                            },
+                            success: function (data) {
+                                location.href = '/backend/tag.html'
+                            }
+                        }
+                )
+            }
+            else {
+                //alert("取消");
+                return false;
+            }
+        }
+
+        function add_tag() {
+
+            if (window.confirm('你确定要添加吗？')) {
+                $.ajax({
+                            url: '/backend/tag.html',
+                            type: "POST",
+                            data: $("#add_tag_form").serialize(),
+                            success: function (data) {
+                                alert("添加成功!")
+                                location.href = '/backend/tag.html'
+                            }
+                        }
+                )
+            }
+            else {
+                //alert("取消");
+                return false;
+            }
+        }
+
+    </script>
+{% endblock %}

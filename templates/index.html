@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/static/plugins/font-awesome/css/font-awesome.css"/>
+    <link rel="stylesheet" href="/static/css/edmure.css"/>
+    <link rel="stylesheet" href="/static/css/commons.css"/>
+    <link rel="stylesheet" href="/static/css/row-avatar.css"/>
+
+    <script type="text/javascript" src="/static/js/jquery-1.12.4.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap/js/bootstrap.js"></script>
+</head>
+<body>
+{% include 'include/header.html' %}
+
+<div class="container">
+    <div>
+        <div class="col-md-8">
+            <div class="article-list">
+                {% for row in article_list %}
+                    <div class="article-item clearfix">
+                        <h3><a href="#">{{ row.title }}</a></h3>
+
+                        <div class="clearfix">
+                            <a class="avatar left" href="#">
+                                <img src="/{{ row.blog.user.avatar }}">
+                            </a>
+                            {{ row.summary }}
+                        </div>
+                        <div class="footers">
+                            <a href="/{{ request.session.user_info.blog__site }}.html">
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span>{{ row.blog.user.nickname }}</span>
+                            </a>
+                            <span>{{ row.create_time|date:"Y-m-d H:i:s" }}</span>
+                            <a href="/{{ row.blog.site }}/{{ row.nid }}.html" class="ele">
+                                <i class="fa fa-commenting-o" aria-hidden="true"></i>
+                                <span>{{ row.comment_count }}</span>
+                            </a>
+                            <a href="#" class="ele" id="up" onclick="up_article(this,{{ row.nid }},'0',{{ row.up_count }})">
+                                <i id = "upimg{{ row.nid }}"class="fa fa-thumbs-o-up" aria-hidden="true"></i>
+                                <span id = "upvalue{{ row.nid }}">{{ row.up_count }}</span>
+                            </a>
+                            <a href="#" class="ele" id="down" onclick="down_article(this,{{ row.nid }},'1',{{ row.down_count }})">
+                                <i id = "downimg{{ row.nid }}"class="fa fa-thumbs-o-down" aria-hidden="true"></i>
+                                <span id = "downvalue{{ row.nid }}"> {{ row.down_count }}</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="clearfix">
+                <ul class="pagination">
+                    {{ page_str }}
+                </ul>
+            </div>
+
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default hot-recommend">
+                <div class="panel-heading">吐血推荐</div>
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        {% for row in article_list %}
+                            <li>{{ row.title}}</li>
+
+                        {% endfor %}
+
+                    </ul>
+                </div>
+            </div>
+            <div class="panel panel-default hot-comment">
+                <div class="panel-heading">评论最多</div>
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        {% for row in command_list %}
+                            <li>{{ row.title}}</li>
+
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% block js %}
+    <script>
+        function up_article(the, article_id, like_type,down_count) {
+            $.ajax({
+                        url: '/backend/up_down_article.html',
+                        type: "POST",
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            "article_id": article_id,
+                            "like_type": like_type
+                        },
+                        success: function (data) {
+                            var data = JSON.parse(data);
+                            if (data.status) {
+                                var iid = "#upimg"+article_id
+                                var vid = "#upvalue"+article_id
+                                $(iid).attr("class","fa fa-thumbs-up");
+                                var count = parseInt($(vid).text())+1
+                                var down_count = parseInt(down_count)
+                                if(count-down_count>1){
+                                    alert("你已经点赞过了!")
+                                }
+                                else{
+                                    $(vid).text(count)
+                                }
+
+                            }
+                            else {
+                                alert(data.error)
+                            }
+                        }
+                    }
+            )
+        }
+
+        function down_article(the, article_id, like_type) {
+            $.ajax({
+                        url: '/backend/up_down_article.html',
+                        type: "POST",
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            "article_id": article_id,
+                            "like_type": like_type
+                        },
+                        success: function (data) {
+                            var data = JSON.parse(data);
+                            if (data.status) {
+                                var iid = "#downimg"+article_id
+                                var vid = "#downvalue"+article_id
+                                $(iid).attr("class","fa fa-thumbs-down");
+                                var count = parseInt($(vid).text())+1
+                                var down_count = parseInt(down_count)
+                                if(count-down_count>1){
+                                    alert("你已经踩过了!")
+                                }
+                                else{
+                                    $(vid).text(count)
+                                }
+                            }
+                            else {
+                                alert(data.error)
+                            }
+                        }
+                    }
+            )
+        }
+    </script>
+{% endblock %}
+</body>
+</html>

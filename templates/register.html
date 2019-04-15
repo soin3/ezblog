@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>用户注册</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/static/plugins/font-awesome/css/font-awesome.css"/>
+    <link rel="stylesheet" href="/static/css/edmure.css"/>
+    <link rel="stylesheet" href="/static/css/commons.css"/>
+    <link rel="stylesheet" href="/static/css/account.css"/>
+    <style>
+
+    </style>
+</head>
+<body>
+<div class="register">
+    <div style="font-size: 25px; font-weight: bold;text-align: center;">
+        用户注册
+    </div>
+    <form id="register_form" role="form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名">
+
+            <p style="float: right ;color: red" id="error_username"></p>
+        </div>
+        <div class="form-group">
+            <label for="email">邮箱</label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="请输入密码">
+
+            <p style="float: right;color: red" id="error_email"></p>
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码">
+
+            <p style="float: right;color: red" id="error_password"></p>
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">确认密码</label>
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                   placeholder="请重新输入密码">
+
+            <p style="float: right;color: red" id="error_confirm_password"></p>
+        </div>
+        <div class="form-group">
+            <label for="password">验证码</label>
+
+            <div class="row">
+                <div class="col-xs-7">
+                    <input type="password" class="form-control" id="very_code" name="very_code" placeholder="请输入验证码">
+                    {#                    <p style="float: left;color: red" id="error_very_code"></p>#}
+                </div>
+                <div class="col-xs-5">
+                    <img src="/check_code.html" onclick="changeCheckCode(this)">
+
+                    <p style="float: right;color: red" id="error_very_code"></p>
+                </div>
+            </div>
+
+        </div>
+        <input id="subBtn" class="btn btn-default" value="下一步"/>
+    </form>
+</div>
+
+<script src="/static/js/jquery-1.12.4.js"></script>
+<script>
+    $("#subBtn").click(function () {
+        $.ajax({
+            url: "/register.html",
+            type: 'POST',
+            data: $("#register_form").serialize(),
+            success: function (data) {
+                var data = JSON.parse(data);
+
+                if (data.status) {
+                    location.href = "/register_welcome.html"
+                }
+                else if (data.error == "*验证码错误") {
+                    //清空所有error p标签的内容
+                    $("#register_form").find('p[id*=error_very_code]').each(
+                            function () {
+                                $(this).text("")
+                            }
+                    )
+                    $("#error_very_code").html(data.error)
+                }
+                else {
+                    //清空所有error p标签的内容
+                    $("#register_form").find('p[id*=error_]').each(
+                            function () {
+                                $(this).text("")
+                            }
+                    )
+                    //根据错误信息动态绑定到p标签
+                    for (var item in data.error) {
+                        {#                            console.log(data.error[item][0])#}
+                        var tmp = '#error_' + item + ''
+                        {#                            console.log(tmp)#}
+                        $(tmp).text(data.error[item][0].message);
+                    }
+                }
+
+            }
+
+        })
+    })
+
+    function changeCheckCode(ths) {
+        ths.src = ths.src + '?';
+    }
+</script>
+
+</body>
+</html>

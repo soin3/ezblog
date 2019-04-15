@@ -1,0 +1,23 @@
+{% extends 'home_layout.html' %}
+
+{% block content %}
+    <div class="summary-list">
+        {%for row in article_list %}
+        <div class="summary-item">
+            <div class="summary-title">
+                <a><a href="/{{ blog.site }}/{{ row.nid }}.html">{{ row.title }}</a></a>
+            </div>
+            <div class="summary-content">
+                {{ row.summary }}
+            </div>
+            <div class="summary-footer">
+                <span>{{ row.create_time|date:"Y-m-d H:i:s"}}</span>
+                <span>{{ blog.user.nickname }}</span>
+                <span><i class="fa fa-book" aria-hidden="true"></i>({{ row.read_count}})</span>
+                <span><i class="fa fa-commenting-o" aria-hidden="true"></i>({{ row.comment_count}})</span>
+                <a>编辑</a>
+            </div>
+        </div>
+        {%endfor%}
+    </div>
+{% endblock %}
